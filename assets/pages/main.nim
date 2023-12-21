@@ -59,7 +59,7 @@ component Main:
                   tImg(src = "/svg_icons/settings.svg", class = "w-5 h-full")
                   tP(class = "h-full"): {translate"Settings"}
         tDiv(
-          class = "px-4 py-2 w-full md:hidden bg-{bgClr100} dark:bg-{bgClr950}"
+          class = "px-4 py-2 w-full md:hidden bg-{bgClr100} dark:bg-{bgClr950} absolute top-0 left-0"
         ):
           tSvg(viewBox="0 0 24 24", class = "cursor-pointer select-none w-8 h-8 stroke-{primaryColor}{PrimaryColor} dark:stroke-{primaryColor}{PrimaryColorDark}"):
             tPath(

@@ -38,7 +38,7 @@ component Chat:
       nim:
         var message = ""
       # messages
-      tDiv(class = "flex flex-col w-full h-full overflow-y-auto px-4 py-2 gap-2"):
+      tDiv(class = "flex flex-col w-full h-full overflow-y-auto px-4 py-2 gap-2 mt-12 md:mt-0"):
         for message in self.messages:
           if message.author == User:
             tDiv(class = "px-2 py-1 rounded-md flex w-full bg-black/10 gap-2"):
