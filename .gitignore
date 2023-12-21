@@ -2,6 +2,7 @@
 build/
 *.apk
 *.exe
+*.js
 
 # Android
 .gradle/
