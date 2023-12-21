@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.hapticx.tmpl'
+    namespace 'com.hapticx.chatgptclient'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.hapticx.tmpl"
+        applicationId "com.hapticx.chatgptclient"
         minSdk 24
         targetSdk 34
         versionCode 1

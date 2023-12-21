@@ -1,4 +1,4 @@
-package com.hapticx.tmpl;
+package com.hapticx.chatgptclient;
 
 import android.app.Activity;
 import android.content.Context;
