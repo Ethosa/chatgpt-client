@@ -81,7 +81,7 @@ component Main:
               nim:
                 var token = ""
               tP(class = "text-xl lg:text-lg xl:text-base"):
-                "To use ChatGPT Client you should add your OpenAI Token here:"
+                {translate"To use ChatGPT Client you should add your OpenAI Token here:"}
               tDiv(class = "flex flex-col md:flex-row gap-2 w-4/5"):
                 Input(
                   "OpenAI Token",
