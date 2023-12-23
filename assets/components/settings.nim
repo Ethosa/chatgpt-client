@@ -37,6 +37,7 @@ component Settings:
             settings.classList.add("opacity-0")
             settings.classList.remove("scale-100")
             settings.classList.remove("opacity-100")
+            self.opened = false
             enableRouting = true
         tHr(class = "w-full h-1 border-t-1 border-{primaryColor}{PrimaryColor} dark:border-{primaryColor}{PrimaryColorDark}")
         tDiv(class = "flex flex-col items-center justify-between"):

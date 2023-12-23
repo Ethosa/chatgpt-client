@@ -7,6 +7,7 @@ import
   ],
   std/enumerate,
   asyncjs,
+  jscore,
   json
 
 
@@ -49,23 +50,65 @@ component Main:
             {translate"made with HappyX Native ✌"}
           tDiv(class = "flex flex-1 flex-col w-full h-full px-2 gap-1 overflow-y-auto"):
             # chat list
+            nim:
+              var current = ""
             for idx, chat in enumerate(openAiClient.chats.getElems):
-              tDiv(class = "px-2 py-1 flex w-full truncate cursor-pointer rounded-md bg-white/[.05] hover:bg-white/[.1] active:bg-white/[.15] duration-150"):
+              nim:
+                let
+                  lastAccessTime = chat["lastAccessTime"].getInt
+                  difference = Date.now() - lastAccessTime
+                  day = 1000 * 60 * 60 * 24
+                  two_days = day * 2
+                  week = day * 7
+                  month = day * 30
+              if difference < day and current != "today":
+                tDiv(class = "flex w-full justify-center"):
+                  {translate"today"}
+                  nim:
+                    current = "today"
+              elif difference < two_days and current != "yesterday":
+                tDiv(class = "flex w-full justify-center"):
+                  {translate"yesterday"}
+                  nim:
+                    current = "yesterday"
+              elif difference < week and current != "last week":
+                tDiv(class = "flex w-full justify-center"):
+                  {translate"last week"}
+                  nim:
+                    current = "last week"
+              elif difference < month and current != "last month":
+                tDiv(class = "flex w-full justify-center"):
+                  {translate"last month"}
+                  nim:
+                    current = "last month"
+              elif current != "some time ago":
+                tDiv(class = "flex w-full justify-center"):
+                  {translate"some time ago"}
+                  nim:
+                    current = "some time ago"
+              tDiv(
+                class =
+                  if currentChat == idx:
+                    "px-2 py-1 flex w-full truncate justify-center cursor-pointer rounded-md bg-white/[.1] hover:bg-white/[.15] active:bg-white/[.2] duration-150"
+                  else:
+                    "px-2 py-1 flex w-full truncate justify-center cursor-pointer rounded-md bg-white/[.05] hover:bg-white/[.1] active:bg-white/[.15] duration-150"
+              ):
                 {chat["name"].getStr}
                 @click:
                   # open chat
                   currentChat.set(idx)
                   route"/"
                   application.router()
-            # Add new chat button
-            tDiv(class = "px-2 py-1 flex w-full truncate cursor-pointer rounded-md bg-white/[.05] hover:bg-white/[.1] active:bg-white/[.15] duration-150"):
-              {translate"New chat"}
-              @click:
-                currentChat.set(-1)
           # Sidebar bottom
           tDiv(class = "flex flex-col w-full px-4 py-2 items-center"):
-            # Settings button
-            tDiv(class = "w-max-1/2"):
+            tDiv(class = "flex flex-col gap-2 w-max-1/2"):
+              # Add new chat button
+              Button(
+                proc() =
+                  currentChat.set(-1)
+              ):
+                {translate"New Chat"}
+              # Settings button
               Button(
                 proc() =
                   let settings = document.getElementById("settings")
@@ -135,19 +178,23 @@ component Main:
                   proc() {.async.} =
                     document.getElementById("msgText").InputElement.value = ""
                     echo openAiClient.chats
-                    openAiClient.chats.add(%*{
+                    var elems = openAiClient.chats.getElems
+                    elems.insert(%*{
                       "name": "New Chat",
+                      "lastAccessTime": Date.now(),
                       "messages": [
                         usrMsg(message)
                       ]
-                    })
+                    }, 0)
+                    openAiClient.chats = newJArray()
+                    for i in elems:
+                      openAiClient.chats.add(i)
                     message = ""
-                    let response = await openAiClient.createChatCompletion(openAiClient.chats[^1]["messages"])
-                    echo response
-                    openAiClient.chats[^1]["messages"].add(response["choices"][0]["message"])
-                    let chatName = await openAiClient.chatName(openAiClient.chats[^1]["messages"])
-                    openAiClient.chats[^1]["name"] = %chatName
-                    currentChat.set(openAiClient.chats.len - 1)
+                    let response = await openAiClient.createChatCompletion(openAiClient.chats[0]["messages"])
+                    openAiClient.chats[0]["messages"].add(response["choices"][0]["message"])
+                    let chatName = await openAiClient.chatName(openAiClient.chats[0]["messages"])
+                    openAiClient.chats[0]["name"] = %chatName
+                    currentChat.set(0)
                     hpxNative.callNim("saveChats", $openAiClient.chats)
                 )
           else:
