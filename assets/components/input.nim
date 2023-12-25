@@ -19,9 +19,9 @@ component Input:
         tTextArea(
           id = $(self.inputId),
           placeholder = " ",
-          class = """px-4 overflow-hidden leading-6 w-full min-h-[2rem] h-8 max-h-[6rem] py-1 peer rounded-md outline outline-1 outline-{primaryColor}{PrimaryColor} 
-                     dark:outline-{primaryColor}{PrimaryColorDark} bg-transparent 
-                     focus:outline-2 focus:outline-{primaryColor}{PrimaryColorHover} focus:dark:outline-{primaryColor}{PrimaryColorHoverDark} duration-150"""
+          class = fmt"""px-4 overflow-hidden leading-6 w-full min-h-[2rem] h-8 max-h-[6rem] py-1 peer rounded-md outline outline-1 outline-{primaryColor}{PrimaryColor} 
+                        dark:outline-{primaryColor}{PrimaryColorDark} bg-transparent 
+                        focus:outline-2 focus:outline-{primaryColor}{PrimaryColorHover} focus:dark:outline-{primaryColor}{PrimaryColorHoverDark} duration-150"""
         ):
           @input(event):
             self.onInput(event.target.InputElement.value)

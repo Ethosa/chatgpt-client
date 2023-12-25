@@ -2,12 +2,16 @@
 import happyx_native
 
 
+const AppVersion = "v0.1.0"
+
+
 var
   token: string = ""
   primaryColor: string = "pink"
   usePCIB: bool = false
   chats: string = "[]"
   modelName: string = "gpt-3.5-turbo"
+  apiBase: string = "https://api.openai.com/v1"
 
 
 proc saveData*() =
@@ -17,14 +21,15 @@ proc saveData*() =
       "primaryColor": primaryColor,
       "usePCIB": usePCIB,
       "chats": chats,
-      "model": modelName
+      "model": modelName,
+      "apiBase": apiBase
     }
-    save("chatgpt-client.save", data)
+    save(fmt"chatgpt-client-{AppVersion}.save", data)
 
 
 proc loadData*() =
   {.gcsafe.}:
-    var source = loadString("chatgpt-client.save")
+    var source = loadString(fmt"chatgpt-client-{AppVersion}.save")
     if source.len > 0:
       var data = parseJson(source)
       token = data["token"].getStr
@@ -32,6 +37,7 @@ proc loadData*() =
       usePCIB = data["usePCIB"].getBool
       chats = data["chats"].getStr
       modelName = data["model"].getStr
+      apiBase = data["apiBase"].getStr
 
 
 callback:
@@ -39,7 +45,7 @@ callback:
     loadData()
     if primaryColor == "":
       primaryColor = "pink"
-    callJs("loadAll", token, primaryColor, $usePCIB, chats, modelName)
+    callJs("loadAll", token, primaryColor, $usePCIB, chats, modelName, apiBase)
   
   proc saveToken(val: string) =
     token = val
@@ -60,6 +66,10 @@ callback:
   proc saveModel(val: string) =
     modelName = val
     saveData()
+  
+  proc saveApiBase(val: string) =
+    apiBase = val
+    saveData()
 
 
-nativeApp("/assets", w = 800, h = 480, title = "ChatGPT Client", establish = false)
+nativeApp("/assets", w = 900, h = 540, title = "ChatGPT Client", establish = false)

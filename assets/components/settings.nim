@@ -1,7 +1,8 @@
 import
   happyx,
   ./[button, input, checkbox],
-  ../[common, colors, native]
+  ../[common, colors, native],
+  ../openai/base
 
 
 component Settings:
@@ -13,9 +14,9 @@ component Settings:
         id = $"settings",
         class =
           if self.opened:
-            "scale-100 opacity-100 flex justify-center items-center w-screen h-screen absolute z-10 duration-300 bg-white/10"
+            "overflow-hidden opacity-100 flex justify-center items-center w-screen h-screen absolute z-10 duration-300 bg-black/[.1] backdrop-blur-sm"
           else:
-            "scale-0 opacity-0 flex justify-center items-center w-screen h-screen absolute z-10 duration-300 bg-white/10"
+            "overflow-hidden pointer-events-none opacity-0 flex justify-center items-center w-screen h-screen absolute z-10 duration-300 bg-black/[.1] backdrop-blur-sm"
     ):
       nim:
         let
@@ -32,14 +33,12 @@ component Settings:
           "x"
           @click:
             enableRouting = false
-            let settings = document.getElementById("settings")
-            settings.classList.add("scale-0")
-            settings.classList.add("opacity-0")
-            settings.classList.remove("scale-100")
-            settings.classList.remove("opacity-100")
             self.opened = false
+            let settings = document.getElementById("settings")
+            settings.classList.add("pointer-events-none")
+            settings.classList.add("opacity-0")
+            settings.classList.remove("opacity-100")
             enableRouting = true
-        tHr(class = "w-full h-1 border-t-1 border-{primaryColor}{PrimaryColor} dark:border-{primaryColor}{PrimaryColorDark}")
         tDiv(class = "flex flex-col items-center justify-between"):
           tP:
             {translate"primary color:"}
@@ -91,7 +90,80 @@ component Settings:
                 primaryColor.set("purple")
                 hpxNative.callNim("savePrimaryColor", primaryColor.val)
                 application.router()
-        tHr(class = "w-full h-1 border-t-1 border-{primaryColor}{PrimaryColor} dark:border-{primaryColor}{PrimaryColorDark}")
+        tDiv(class = "flex w-full justify-center gap-2 px-8"):
+          tDiv(
+            class = "relative group flex rounded-md select-none cursor-pointer justify-center items-center px-8 py-2 bg-{bgClr100} dark:bg-{bgClr800}"
+          ):
+            tP:
+              {translate"GPT Model:"}
+              " - "
+              {openAiClient.modelName}
+            tDiv(class = "absolute z-10 duration-150 w-screen h-screen scale-125 backdrop-blur-sm bg-black/[.25] group-hover:opacity-100 opacity-0 pointer-events-none")
+            tDiv(
+              id = $"gpt-models-menu",
+              class = "absolute z-10 duration-150 scale-0 group-hover:scale-100 group-hover:-translate-y-[25%] w-max overflow-hidden rounded-md bg-{bgClr200} dark:bg-{bgClr900}"
+            ):
+              for modelName in gptModels:
+                tDiv(class = "w-full px-2 py-1 cursor-pointer select-none bg-white/[.05] hover:bg-white/[.1] active:bg-white/[.15]"):
+                  {modelName}
+                  @click:
+                    enableRouting = false
+                    self.opened = true
+                    enableRouting = true
+                    openAiClient.modelName = modelName
+                    hpxNative.callNim("saveModel", modelName)
+                    route"/"
+                    application.router()
+        tDiv(class = "flex flex-col items-center w-full gap-1"):
+          tP:
+            {translate"GPT API URL Base:"}
+          tDiv(class = "text-lg xl:text-base flex items-center relative w-full min-w-fit h-fit"):
+            tInput(
+              placeholder = " ",
+              value = openAiClient.base,
+              class = "px-4 w-full py-1 peer rounded-md outline outline-1 outline-{primaryColor}{PrimaryColor} dark:outline-{primaryColor}{PrimaryColorDark} bg-transparent focus:outline-2 focus:outline-{primaryColor}{PrimaryColorHover} focus:dark:outline-{primaryColor}{PrimaryColorHoverDark} duration-150"
+            ):
+              @input(event):
+                enableRouting = false
+                self.opened = true
+                enableRouting = true
+                openAiClient.base = $event.target.InputElement.value
+                hpxNative.callNim("saveApiBase", openAiClient.base)
+                route"/"
+                application.router()
+            tLabel(
+              class = "flex px-2 absolute pointer-events-none peer-focus:scale-75 peer-[:not(:placeholder-shown)]:scale-75 peer-[:not(:placeholder-shown)]:-top-4 peer-focus:-top-4 peer-[:not(:placeholder-shown)]:translate-x-2 peer-focus:translate-x-2 peer-[:not(:placeholder-shown)]:backdrop-blur-2xl peer-focus:backdrop-blur-2xl duration-150"
+            ):
+              "URL"
+        tDiv(class = "flex flex-col items-center w-full gap-1"):
+          tP:
+            {translate"OpenAI Token"}
+          tDiv(class = "text-lg xl:text-base flex items-center relative w-full min-w-fit h-fit"):
+            tInput(
+              id = $"newToken",
+              placeholder = " ",
+              value = $openAiClient.token,
+              type = "password",
+              class = "px-4 w-full py-1 peer rounded-md outline outline-1 outline-{primaryColor}{PrimaryColor} dark:outline-{primaryColor}{PrimaryColorDark} bg-transparent focus:outline-2 focus:outline-{primaryColor}{PrimaryColorHover} focus:dark:outline-{primaryColor}{PrimaryColorHoverDark} duration-150"
+            ):
+              @input(event):
+                enableRouting = false
+                self.opened = true
+                enableRouting = true
+                openAiClient.token = event.target.InputElement.value
+                hpxNative.callNim("saveToken", $openAiClient.token)
+                route"/"
+                application.router()
+              @mouseover(event):
+                var elem = document.getElementById("newToken").InputElement
+                {.emit:"`elem`.type = 'text'".}
+              @mouseout(event):
+                var elem = document.getElementById("newToken")
+                {.emit:"`elem`.type = 'password'".}
+            tLabel(
+              class = "flex px-2 absolute pointer-events-none peer-focus:scale-75 peer-[:not(:placeholder-shown)]:scale-75 peer-[:not(:placeholder-shown)]:-top-4 peer-focus:-top-4 peer-[:not(:placeholder-shown)]:translate-x-2 peer-focus:translate-x-2 peer-[:not(:placeholder-shown)]:backdrop-blur-2xl peer-focus:backdrop-blur-2xl duration-150"
+            ):
+              "OpenAI Token"
         Checkbox(
           usePCIB,
           proc(checked: bool) =
@@ -102,4 +174,4 @@ component Settings:
             hpxNative.callNim("saveUsePCInBack", $usePCIB)
             application.router()
         ):
-          "use primary key for background"
+          {translate"use primary color for background"}

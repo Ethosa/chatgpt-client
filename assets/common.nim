@@ -16,7 +16,11 @@ translatable:
     "ru" -> "Настройки"
   "primary color:":
     "ru" -> "основной цвет:"
-  "use primary key for background":
+  "GPT API URL Base:":
+    "ru" -> "базовый путь до GPT API:"
+  "GPT model:":
+    "ru" -> "модель GPT:"
+  "use primary color for background":
     "ru" -> "использовать основной цвет для фона"
   "To use ChatGPT Client you should add your OpenAI Token here:":
     "ru" -> "Чтобы использовать ChatGPT Client вам необходимо вставить токен сюда:"

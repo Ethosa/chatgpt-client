@@ -11,10 +11,11 @@ import
   json
 
 
-proc loadAll*(token, clr, pcib, chats, modelName: cstring) {.exportc.} =
+proc loadAll*(token, clr, pcib, chats, modelName, apiBase: cstring) {.exportc.} =
   openAiClient.token = token
   openAiClient.chats = parseJson($chats)
   openAiClient.modelName = $modelName
+  openAiClient.base = $apiBase
   primaryColor.set($clr)
   usePCIB.set(pcib == "true")
 
@@ -106,15 +107,16 @@ component Main:
               Button(
                 proc() =
                   currentChat.set(-1)
+                  route"/"
+                  application.router()
               ):
                 {translate"New Chat"}
               # Settings button
               Button(
                 proc() =
                   let settings = document.getElementById("settings")
-                  settings.classList.add("scale-100")
                   settings.classList.add("opacity-100")
-                  settings.classList.remove("scale-0")
+                  settings.classList.remove("pointer-events-none")
                   settings.classList.remove("opacity-0")
               ):
                 tDiv(class = "flex gap-2 items-center justify-center"):
@@ -176,6 +178,7 @@ component Main:
                   "msgText",
                   true,
                   proc() {.async.} =
+                    enableRouting = false
                     document.getElementById("msgText").InputElement.value = ""
                     echo openAiClient.chats
                     var elems = openAiClient.chats.getElems
@@ -196,6 +199,9 @@ component Main:
                     openAiClient.chats[0]["name"] = %chatName
                     currentChat.set(0)
                     hpxNative.callNim("saveChats", $openAiClient.chats)
+                    enableRouting = true
+                    route"/"
+                    application.router()
                 )
           else:
             Chat

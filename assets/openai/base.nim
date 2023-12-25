@@ -14,7 +14,40 @@ type
     chats*: JsonNode
 
 
-proc newOpenAIClient*(token: string, base: string = "https://api.openai.com"): OpenAIClient =
+var
+  gptModels* = @[
+    "gpt-4-1106-preview",
+    "gpt-4-vision-preview",
+    "gpt-4",
+    "gpt-4-32k",
+    "gpt-4-0613",
+    "gpt-4-32k-0613",
+    "gpt-3.5-turbo-1106",
+    "gpt-3.5-turbo",
+    "gpt-3.5-turbo-16k",
+    "gpt-3.5-turbo-instruct",
+  ]
+  dallEModels* = @[
+    "dall-e-3",
+    "dall-e-2",
+  ]
+  ttsModels* = @[
+    "tts-1",
+    "tts-1-hd",
+  ]
+  whisperModels* = @[
+    "whisper-1",
+  ]
+  embeddingModels* = @[
+    "text-embedding-ada-002",
+  ]
+  moderationModels* = @[
+    "text-moderation-latest",
+    "text-moderation-stable",
+  ]
+
+
+proc newOpenAIClient*(token: string, base: string = "https://api.openai.com/v1"): OpenAIClient =
   OpenAIClient(token: token, base: base, chats: newJArray())
 
 
@@ -49,8 +82,9 @@ proc post*(self: OpenAIClient, url: cstring, body: cstring): Future[cstring] {.a
     },
     body: `body`
   });
-  `response` = x.text();
+  `response` = await x.text();
   """.}
+  echo response
   return response
 
 
@@ -59,9 +93,10 @@ proc get*(self: OpenAIClient, url: cstring): Future[cstring] {.async.} =
   var response: cstring
   {.emit: """//js
   let x = await fetch(`url`, {
+    method: "GET",
     headers: {'Authorization': `authorization`}
   });
-  `response` = x.text();
+  `response` = await x.text();
   """.}
   return response
 
@@ -69,7 +104,7 @@ proc get*(self: OpenAIClient, url: cstring): Future[cstring] {.async.} =
 proc createChatCompletion*(self: OpenAIClient, messages: JsonNode): Future[JsonNode] {.async.} =
   var response: cstring
   let
-    url: cstring = fmt"{self.base}/v1/chat/completions"
+    url: cstring = fmt"{self.base}/chat/completions"
     body: cstring = cstring $(%*{
       "model": self.modelName,
       "messages": messages
@@ -80,13 +115,13 @@ proc createChatCompletion*(self: OpenAIClient, messages: JsonNode): Future[JsonN
 proc chatName*(self: OpenAIClient, messages: JsonNode): Future[string] {.async.} =
   var msgs = messages
   let
-    url: cstring = fmt"{self.base}/v1/chat/completions"
+    url: cstring = fmt"{self.base}/chat/completions"
     body: cstring = cstring $(%*{
       "model": self.modelName,
       "messages": [
         {
           "role": "user",
-          "content": "Create a chat name based on the following data. " &
+          "content": "Create a chat name based on the following data. Use language based on following data. " &
                      "In your message, write ONLY the chat name and NOTHING ELSE.\n" &
                      $msgs
         }
@@ -95,3 +130,13 @@ proc chatName*(self: OpenAIClient, messages: JsonNode): Future[string] {.async.}
   return (
     parseJson($(await self.post(url, body)))
   )["choices"][0]["message"]["content"].getStr
+
+
+proc modelsList*(self: OpenAIClient): Future[seq[string]] {.async.} =
+  let
+    url: cstring = fmt"{self.base}/models"
+    response = parseJson($(await self.get(url)))
+  var res: seq[string] = @[]
+  for i in response["data"]:
+    res.add(i.getStr())
+  return res
